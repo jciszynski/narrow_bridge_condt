@@ -1,0 +1,6 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/home/jc/threads_problems'
+make: Leaving directory '/home/jc/threads_problems'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

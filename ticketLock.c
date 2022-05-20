@@ -7,8 +7,8 @@ ticket_vm *intiTicket_vm()
     ticket_vm *tvm = malloc(sizeof(ticket_vm));
     if (tvm == NULL)
         return NULL;
-    tvm->next_ticket = 0;
-    tvm->now_serving = 0;
+    tvm->next_ticket = 1;
+    tvm->now_serving = 1;
     pthread_mutex_init(&tvm->ticket_fetch_lock, NULL);
     return tvm;
 }

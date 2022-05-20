@@ -10,26 +10,47 @@
 #include <unistd.h>
 #include "array.h"
 #include "ticketLock.h"
+#include "car.h"
 
-#define TOWN_A 0
-#define TOWN_B 1
-#define DIR_R 0
-#define DIR_L 1
+car *carArray;
+int arraySize;
 ticket_vm *tvm;
 
 pthread_mutex_t bridge_mutex = PTHREAD_MUTEX_INITIALIZER;
-int bridgeCarid = 0;
-int aTownCount = 0;
-int bTownCount = 0;
-int aQueueSize =0;
-int bQueueSize =0;
-int direction;
 char interruptedFlag = 0;
 
 void sigintHandler();
 
-void printTraffic(){
-    printf("A-%d %d>>> [>> %d >>] <<<%d %d-B\n", aTownCount, aQueueSize, bridgeCarid, bQueueSize,bTownCount);
+void printTraffic()
+{
+    char dirArrows[3];
+    car *carOnBridge = getCurOnBridge(carArray, arraySize);
+    int bridgeCarId;
+
+
+    if (carOnBridge == NULL)
+    {
+        bridgeCarId = -1;
+    }
+    else if (carOnBridge->state == BRIDGE_TO_A)
+    {
+        strcpy(dirArrows, "<<");
+        bridgeCarId = carOnBridge->id;
+    }
+    else if (carOnBridge->state == BRIDGE_TO_B)
+    {
+        strcpy(dirArrows, ">>");
+        bridgeCarId = carOnBridge->id;
+    }
+
+    int aTownCount = countCar(carArray, arraySize, TOWN_A);
+    int aQueueSize = countCar(carArray, arraySize, TOWN_A_QUEUE);
+    int bTownCount = countCar(carArray, arraySize, TOWN_B);
+    int bQueueSize = countCar(carArray, arraySize, TOWN_B_QUEUE);
+    if (bridgeCarId != -1)
+        printf("A-%d\t%d>>>\t[%s %d %s]\t<<<%d\t%d-B\n", aTownCount, aQueueSize, dirArrows, bridgeCarId, dirArrows, bQueueSize, bTownCount);
+    else
+        printf("A-%d\t%d>>>\t[       ]\t<<<%d\t%d-B\n", aTownCount, aQueueSize, bQueueSize, bTownCount);
     fflush(stdout);
 }
 void town()
@@ -48,34 +69,35 @@ void bridge()
     free(array);
 }
 
-void *car(void *threadid)
+void *car_thread(void *threadid)
 {
     long tid = (long)threadid;
-    int current_town = TOWN_A;
+
     while (!interruptedFlag)
     {
+
         pthread_mutex_lock(&bridge_mutex);
-        aTownCount--;
-        bridgeCarid = tid;
-        direction = 
+        carArray[tid].state = BRIDGE_TO_B;
         printTraffic();
         bridge();
-        bridgeCarid = 0;
-        bTownCount++;
+        carArray[tid].state = TOWN_B;
         printTraffic();
         pthread_mutex_unlock(&bridge_mutex);
+
         town();
-        
+        carArray[tid].state = TOWN_B_QUEUE;
+        printTraffic();
         pthread_mutex_lock(&bridge_mutex);
-        bridgeCarid = tid;
-        bTownCount--;
+        carArray[tid].state = BRIDGE_TO_A;
         printTraffic();
         bridge();
-        bridgeCarid = 0;
-        aTownCount++;
+        carArray[tid].state = TOWN_A;
         printTraffic();
         pthread_mutex_unlock(&bridge_mutex);
-        town();    
+
+        town();
+        carArray[tid].state = TOWN_A_QUEUE;
+        printTraffic();
     }
 }
 
@@ -121,10 +143,15 @@ int main(int argc, char *argv[])
     }
 
     pthread_t threads[numOfCars];
-    aTownCount = numOfCars;
+    carArray = malloc(sizeof(car) *numOfCars);
+    arraySize = numOfCars;
+
+    initCarArray(carArray, numOfCars);
+    printTraffic();
+
     for (long t = 0; t < numOfCars; t++)
     {
-        if (pthread_create(&threads[t], NULL, car, (void *)t))
+        if (pthread_create(&threads[t], NULL, car_thread, (void *)t))
         {
             printf("Failed to create thread %ld", t);
             exit(EXIT_FAILURE);
