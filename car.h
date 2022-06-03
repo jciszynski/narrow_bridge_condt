@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-typedef struct car{
+typedef struct {
     int id;
     int state;
     int curTicket;
-} car;
+}car;
 
 #define TOWN_A          0
 #define TOWN_A_QUEUE    1
@@ -16,4 +16,6 @@ typedef struct car{
 
 void initCarArray(car *Car, int array_size);
 car *getCurOnBridge(car *Car, int array_size);
+car *copy(car car);
 int countCar(car *Car, int array_size, int count_state);
+car *listQueue(car *Car, int array_size, int state);

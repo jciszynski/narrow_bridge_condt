@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <signal.h>
 #include "ticketLock.h"
 
 ticket_vm *intiTicket_vm()
@@ -30,6 +30,7 @@ int getNowServing(ticket_vm *tvm)
 void release(ticket_vm *tvm)
 {
     tvm->now_serving++;
+    raise(SIGUSR1);
 }
 
 int getQueueSize(ticket_vm *tvm)
