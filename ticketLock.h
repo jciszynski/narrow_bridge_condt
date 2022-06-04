@@ -6,6 +6,7 @@ typedef struct ticket_machine{
     int now_serving;
     int next_ticket;
     pthread_mutex_t ticket_fetch_lock;
+    pthread_cond_t tvm_release;
 } ticket_vm;
 
 int getTicket(ticket_vm *tvm);

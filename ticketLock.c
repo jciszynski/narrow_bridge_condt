@@ -9,13 +9,13 @@ ticket_vm *intiTicket_vm()
         return NULL;
     tvm->next_ticket = 1;
     tvm->now_serving = 1;
-    pthread_mutex_init(&tvm->ticket_fetch_lock, NULL);
+    pthread_mutex_init(&tvm->ticket_fetch_lock, NULL); //mutex chroniący dostęp do wydawania biletów (dzięki temu dwa wątki nigdy nie dostaną takiego samego numeru)
     return tvm;
 }
 
 int getTicket(ticket_vm *tvm)
 {
-    pthread_mutex_lock(&tvm->ticket_fetch_lock);
+    pthread_mutex_lock(&tvm->ticket_fetch_lock); //na czas pobierania wartości biletu, blokujemy mutex
     int ticket_number = tvm->next_ticket++;
     pthread_mutex_unlock(&tvm->ticket_fetch_lock);
 
@@ -30,7 +30,7 @@ int getNowServing(ticket_vm *tvm)
 void release(ticket_vm *tvm)
 {
     tvm->now_serving++;
-    raise(SIGUSR1);
+
 }
 
 int getQueueSize(ticket_vm *tvm)
