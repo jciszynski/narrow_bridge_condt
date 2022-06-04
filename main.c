@@ -58,9 +58,9 @@ void enterTownQueue(long tid, int town)
     printTraffic();
 }
 
-void enterTown(long tid, int town)
+void enterTown(long tid, int townNum)
 {
-    carArray[tid].state = town;
+    carArray[tid].state = townNum;
     carArray[tid].curTicket = INT_MAX;
     release(tvm);
     pthread_cond_broadcast(&tvm_release);
@@ -69,14 +69,14 @@ void enterTown(long tid, int town)
 }
 
 
-void enterBridge(long tid)
+void enterBridge(long tid, int dir)
 {
     pthread_mutex_lock(&bridge_mutex);
     while (carArray[tid].curTicket != getNowServing(tvm))
     {
         pthread_cond_wait(&tvm_release, &bridge_mutex);
     }
-    carArray[tid].state = BRIDGE_TO_A;
+    carArray[tid].state = dir;
     printTraffic();
     bridge();
     pthread_mutex_unlock(&bridge_mutex);
@@ -91,12 +91,12 @@ void *car_thread(void *threadid)
 
     while (!interruptedFlag)
     {
-        enterBridge(tid);
+        enterBridge(tid, BRIDGE_TO_B);
 
         enterTown(tid, TOWN_B);
         enterTownQueue(tid, TOWN_B_QUEUE);
 
-        enterBridge(tid);
+        enterBridge(tid, BRIDGE_TO_A);
 
         enterTown(tid, TOWN_A);
         enterTownQueue(tid, TOWN_A_QUEUE);
