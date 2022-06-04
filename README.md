@@ -5,7 +5,7 @@ Z miasta A do miasta B prowadzi droga, na której znajduje się wąski most umo�
 
 W praktycznej realizacji projektu wykorzystano mechanizm "ticket Lock", dostęp do aktualnie wydawanego numeru jest chroniony przez mutex.
 W funkcji ```town()``` oraz ```bridge()``` program generuje losową tablice liczb po czym ją sortuje z wykorzystaniem sortowania bąbelkowego. W zależności od procesora na którym uruchomiono program, funkcja ta wykonuje się przez ok. 1-3s
-
+Wersja z wykorzystaniem zmiennych warunkowych.
 
 ### Użycie
 ```bridge <N> [-debug]```
