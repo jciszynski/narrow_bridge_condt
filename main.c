@@ -25,7 +25,6 @@ car *carArray;
 int arraySize;
 ticket_vm *tvm;
 
-
 char interruptedFlag = 0;
 char debugFlag = 0;
 void sigintHandler();
@@ -54,20 +53,23 @@ void bridge()
 void enterTownQueue(long tid, int town)
 {
     carArray[tid].curTicket = getTicket(tvm);
+    pthread_mutex_lock(&printer_mutex);
     carArray[tid].state = town;
     printTraffic();
+    pthread_mutex_unlock(&printer_mutex);
 }
 
 void enterTown(long tid, int townNum)
 {
+    pthread_mutex_lock(&printer_mutex);
     carArray[tid].state = townNum;
     carArray[tid].curTicket = INT_MAX;
     release(tvm);
     pthread_cond_broadcast(&tvm_release);
     printTraffic();
+    pthread_mutex_unlock(&printer_mutex);
     town();
 }
-
 
 void enterBridge(long tid, int dir)
 {
@@ -76,8 +78,10 @@ void enterBridge(long tid, int dir)
     {
         pthread_cond_wait(&tvm_release, &bridge_mutex);
     }
+    pthread_mutex_lock(&printer_mutex);
     carArray[tid].state = dir;
     printTraffic();
+    pthread_mutex_unlock(&printer_mutex);
     bridge();
     pthread_mutex_unlock(&bridge_mutex);
 }
@@ -194,7 +198,7 @@ void sigintHandler(int signum)
 
 void printTraffic()
 {
-    pthread_mutex_lock(&printer_mutex);
+
     char dirArrows[3];
     car *carOnBridge = getCurOnBridge(carArray, arraySize);
     int bridgeCarId;
@@ -246,7 +250,8 @@ void printTraffic()
         {
             printf("%d ", inAQueue[i].id);
         }
-        free(inAQueue);
+        if (inAQueue != NULL)
+            free(inAQueue);
 
         printf("\n");
         DELETELINE();
@@ -262,7 +267,8 @@ void printTraffic()
         {
             printf("%d ", inBQueue[i].id);
         }
-        free(inBQueue);
+        if (inBQueue != NULL)
+            free(inBQueue);
 
         printf("\n");
         DELETELINE();
@@ -275,5 +281,4 @@ void printTraffic()
         RESTORECURPOS();
         fflush(stdout);
     }
-    pthread_mutex_unlock(&printer_mutex);
 }

@@ -6,7 +6,7 @@
 #define MAX_RAND 1000
 #define MIN_RAND 10
 #define MIN_ARRAY_SIZE 5000
-#define MAX_ARRAY_SIZE 30000
+#define MAX_ARRAY_SIZE 20000
 
 int rand_in_range(int min, int max);
 int *create_rand_array(int *m);

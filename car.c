@@ -67,7 +67,7 @@ car *listQueue(car *Car, int array_size, int state)
 
     car *queue = malloc(sizeof(car)*size);
     int queueCursor = 0;
-    for (int i = 0; i < array_size; i++)
+    for (int i = 0; i < array_size, queueCursor < size; i++)
     {
         if (Car[i].state == state){
             queue[queueCursor].state = Car[i].state;
